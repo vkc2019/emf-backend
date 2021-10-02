@@ -19,6 +19,14 @@ module.exports = function(app) {
   );
 
   app.get(
+    "/api/tabs",
+    [
+      verifySignUp.checkRolesExisted
+    ],
+    controller.getTabList
+  );
+
+  app.get(
     "/api/industry",
     [
       verifySignUp.checkRolesExisted

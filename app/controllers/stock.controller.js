@@ -6,7 +6,12 @@ const sequelize = db.sequelize;
 const { parse, eval } = require('expression-eval');
 
 exports.getStockList = (req, res) => {
-  StockDetails.findAll()
+  StockDetails.findAll({
+    attributes: [
+      [sequelize.fn("DISTINCT", sequelize.col("code")), "code"],
+      ['security_name', 'name']
+    ],
+  })
     .then((stock_list) => {
       if (!stock_list) {
         return res.status(404).send({ message: "Stock list Not found." });
@@ -99,23 +104,34 @@ exports.saveStock = (req, res) => {
     });
 };
 
-exports.getFormulaList = (req, res) => {
+
+
+
+exports.getTabList = (req, res) => {
   TabDetails.findAll()
     .then((tab_list) => {
-      if (!tab_list) {
+      if (tab_list.length ==0) {
         return res.status(404).send({ message: "Tab list Not found." });
       }
-      res.status(200).send(tab_list);
+      const result = {};
+      const tabItems = new Map();
+      for(const item of tab_list){
+        tabItems[item.tabName]= true;
+      }
+      result.tabItems =  Object.keys(tabItems);
+      result.tabList = [];
+      result.tabList = tab_list;
+      res.status(200).send(result);
     })
     .catch((err) => {
       res.status(500).send({ message: err.message });
     });
 };
 
-exports.getTabList = (req, res) => {
+exports.getFormulas = (req, res) => {
   Formula.findAll()
     .then((f_list) => {
-      if (!f_list) {
+      if (f_list.length==0) {
         return res.status(404).send({ message: "Formula list Not found." });
       }
       res.status(200).send(f_list);
