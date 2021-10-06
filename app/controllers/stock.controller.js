@@ -3,13 +3,16 @@ const StockDetails = db.stock;
 const TabDetails = db.tab;
 const Formula = db.formula;
 const sequelize = db.sequelize;
+const Portifolio =db.portifolio;
+
 const { parse, eval } = require('expression-eval');
 
 exports.getStockList = (req, res) => {
   StockDetails.findAll({
     attributes: [
       [sequelize.fn("DISTINCT", sequelize.col("code")), "code"],
-      ['security_name', 'name']
+      ['security_name', 'name'],
+      ['industry', 'industry']
     ],
   })
     .then((stock_list) => {
@@ -164,6 +167,22 @@ calculate = (details, expression, requiredParameters, prevYearParameters, preYea
     return 0;
 }
 
+exports.getPortifolio = (req,res) =>{
+  Portifolio.findAll({
+    where: {
+      is_active: 'Active',
+    }
+  }) .then((pstocks) => {
+    if (pstocks.length === 0) {
+      return res.status(404).send({ message: "Portifolio list Not found." });
+    }else{
+      return res.status(200).send(pstocks);
+    }
+  }).catch(err=> {
+    res.status(500).send({ message: err.message });
+  })
+}
+
 
 exports.getStockListByParams = (req, res) => {
   const industryList = req.query.industry;
@@ -178,7 +197,7 @@ exports.getStockListByParams = (req, res) => {
     ]
   })
     .then((stock_list) => {
-      if (!stock_list) {
+      if (stock_list.length === 0) {
         return res.status(404).send({ message: "Stock list Not found." });
       }
       Formula.findAll({

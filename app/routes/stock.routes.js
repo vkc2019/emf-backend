@@ -49,5 +49,14 @@ module.exports = function(app) {
     controller.saveStock
   );
 
+  app.get(
+    "/api/portifolio",
+    [
+      verifySignUp.checkRolesExisted
+    ],
+    controller.getPortifolio
+  );
+
+
   
 };
