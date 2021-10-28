@@ -151,12 +151,13 @@ calculate = (details, expression, requiredParameters, prevYearParameters, preYea
     data[item.trim()] = details[item.trim()];
   }
   if (prevYearParameters) {
-    const preParams = requiredParameters.split(',');
+    const preParams = prevYearParameters.split(',');
     for (const item of preParams) {
-      if (preYearDetails) {
+      if (preYearDetails.size == 0) {
         data[item.trim() + "_preYear"] = NaN;
+      }else{
+        data[item.trim() + "_preYear"] = preYearDetails.get(item.trim());
       }
-      data[item.trim() + "_preYear"] = preYearDetails[item.trim()];
     }
   }
   const ast = parse(expression);
@@ -224,12 +225,13 @@ getCalculatedResults = (stock_list, formulaList, parameter) => {
   if (formulaList.length > 0) {
     const formula = formulaList[0].formula
     const requiredParameters = formulaList[0].requiredParameter;
-    const prevYearParameters = formulaList[0].prevYearParameter;
+    const prevYearParameters = formulaList[0].preYearParameter;
     console.log(formula)
     console.log(requiredParameters)
     console.log(prevYearParameters)
+    let preYearDetails = null;
     for (const st of stock_list) {
-      const preYearDetails = new Map();
+      
       if (!finalList[st.code]) {
         finalList[st.code] = {};
         finalList[st.code].code = st.code;
@@ -237,12 +239,13 @@ getCalculatedResults = (stock_list, formulaList, parameter) => {
         finalList[st.code].security_id = st.security_id;
         finalList[st.code].security_name = st.security_name;
         finalList[st.code].yearWiseValue = {};
+        preYearDetails = new Map();
       }
       finalList[st.code].yearWiseValue[st.year] = calculate(st, formula, requiredParameters, prevYearParameters, preYearDetails);
       if (prevYearParameters) {
         let preYearParams = prevYearParameters.split(',');
         for (const para of preYearParams) {
-          preYearDetails.put(para.trim(), st[para.trim()]);
+          preYearDetails.set(para.trim(), st[para.trim()]);
         }
       }
     }
