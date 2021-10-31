@@ -383,6 +383,7 @@ exports.getLastestYearStockDetails = async (req, res) => {
           finalList[st.code].industry = st.industry;
           finalList[st.code].security_id = st.security_id;
           finalList[st.code].security_name = st.security_name;
+          finalList[st.code].lastestParams = {};
           for (const item of tab_details) {
             let preYearDetails = null;
             if (item.isFormula == 1) {
@@ -390,9 +391,9 @@ exports.getLastestYearStockDetails = async (req, res) => {
               if(formulaData.preYearParameter != null){
                 preYearDetails = stock_list[index];
               }
-              finalList[st.code][item.parameter] = calculate(st, formulaData.formula, formulaData.requiredParameter, formulaData.preYearParameter, preYearDetails);
+              finalList[st.code].lastestParams[item.parameter] = calculate(st, formulaData.formula, formulaData.requiredParameter, formulaData.preYearParameter, preYearDetails);
             } else {
-              finalList[st.code][item.parameter] = st[item.parameter];
+              finalList[st.code].lastestParams[item.parameter] = st[item.parameter];
             }
           }
         }
