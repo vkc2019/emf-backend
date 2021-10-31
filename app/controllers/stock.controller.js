@@ -153,10 +153,10 @@ calculate = (details, expression, requiredParameters, prevYearParameters, preYea
   if (prevYearParameters) {
     const preParams = prevYearParameters.split(',');
     for (const item of preParams) {
-      if (preYearDetails.size == 0) {
+      if (preYearDetails == null) {
         data[item.trim() + "_preYear"] = NaN;
-      }else{
-        data[item.trim() + "_preYear"] = preYearDetails.get(item.trim());
+      } else {
+        data[item.trim() + "_preYear"] = preYearDetails[item.trim()];
       }
     }
   }
@@ -231,7 +231,7 @@ getCalculatedResults = (stock_list, formulaList, parameter) => {
     console.log(prevYearParameters)
     let preYearDetails = null;
     for (const st of stock_list) {
-      
+
       if (!finalList[st.code]) {
         finalList[st.code] = {};
         finalList[st.code].code = st.code;
@@ -239,14 +239,11 @@ getCalculatedResults = (stock_list, formulaList, parameter) => {
         finalList[st.code].security_id = st.security_id;
         finalList[st.code].security_name = st.security_name;
         finalList[st.code].yearWiseValue = {};
-        preYearDetails = new Map();
+        preYearDetails = null;
       }
       finalList[st.code].yearWiseValue[st.year] = calculate(st, formula, requiredParameters, prevYearParameters, preYearDetails);
       if (prevYearParameters) {
-        let preYearParams = prevYearParameters.split(',');
-        for (const para of preYearParams) {
-          preYearDetails.set(para.trim(), st[para.trim()]);
-        }
+          preYearDetails = st;
       }
     }
   } else {
@@ -326,3 +323,90 @@ exports.getEachStockDetails = async (req, res) => {
     });
 
 };
+
+exports.getLastestYearStockDetails = async (req, res) => {
+  const industryList = req.query.industry;
+  let tab_details = null;
+  let formula_List = [];
+  await TabDetails.findAll({
+    where: {
+      islastestYearParam: 1,
+    }
+  })
+    .then((tab_list) => {
+      if (tab_list.length == 0) {
+        return res.status(404).send({ message: "Tab list Not found." });
+      }
+      // console.log("tab_list => ",tab_list);
+      tab_details = tab_list;
+    })
+    .catch((err) => {
+      res.status(500).send({ message: err.message });
+    });
+
+  await Formula.findAll()
+    .then((formulaList) => {
+      for (const item of tab_details) {
+        console.log(item.parameter);
+        if (item.isFormula == 1) {
+          let found = formulaList.find(each => { if (each.parameter == item.parameter) { return each } });
+          formula_List[item.parameter] = found;
+        }
+      }
+    })
+    .catch((err) => {
+      res.status(500).send({ message: err.message });
+    });
+
+
+  await StockDetails.findAll({
+    where: {
+      industry: [industryList.split(",")],
+    },
+    order: [
+      ['industry'],
+      ['security_name'],
+      ['year', 'DESC']
+    ]
+  })
+    .then((stock_list) => {
+      if (stock_list.length === 0) {
+        return res.status(404).send({ message: "Stock list Not found." });
+      }
+      const finalList = new Map();
+      let index = 0;
+      for (let st of stock_list) {
+        index++;
+        if (!finalList[st.code]) {
+          finalList[st.code] = {};
+          finalList[st.code].code = st.code;
+          finalList[st.code].industry = st.industry;
+          finalList[st.code].security_id = st.security_id;
+          finalList[st.code].security_name = st.security_name;
+          for (const item of tab_details) {
+            let preYearDetails = null;
+            if (item.isFormula == 1) {
+              let formulaData = formula_List[item.parameter];
+              if(formulaData.preYearParameter != null){
+                preYearDetails = stock_list[index];
+              }
+              finalList[st.code][item.parameter] = calculate(st, formulaData.formula, formulaData.requiredParameter, formulaData.preYearParameter, preYearDetails);
+            } else {
+              finalList[st.code][item.parameter] = st[item.parameter];
+            }
+          }
+        }
+
+
+      }
+
+      const arr = [];
+      for (let key in finalList) {
+        arr.push(finalList[key])
+      }
+      res.status(200).send(arr);
+    })
+    .catch((err) => {
+      res.status(500).send({ message: err.message });
+    });
+}

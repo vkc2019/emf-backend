@@ -65,6 +65,14 @@ module.exports = function(app) {
     controller.getEachStockDetails
   );
 
+  app.get(
+    "/api/latestYear",
+    [
+      verifySignUp.checkRolesExisted
+    ],
+    controller.getLastestYearStockDetails
+  );
 
+  
   
 };
