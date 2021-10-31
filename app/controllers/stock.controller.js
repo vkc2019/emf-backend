@@ -270,6 +270,7 @@ getCalculatedResults = (stock_list, formulaList, parameter) => {
 exports.getEachStockDetails = async (req, res) => {
   const stockCode = req.query.code;
   const tab_details = {};
+  let formula_List = null;
   await TabDetails.findAll()
     .then((tab_list) => {
       if (tab_list.length == 0) {
@@ -283,6 +284,22 @@ exports.getEachStockDetails = async (req, res) => {
     .catch((err) => {
       res.status(500).send({ message: err.message });
     });
+
+    await Formula.findAll()
+    .then((formulaList) => {
+      formula_List = formulaList;
+    //   for (const tab in tab_details) {
+    //     for (let parameter of tab_details[tab]) {
+    //       let found = formulaList.find(each => { if (each.parameter == parameter) { return each } });
+    //       formula_List[parameter] = found;
+    //   }
+    // }
+    })
+    .catch((err) => {
+      res.status(500).send({ message: err.message });
+    });
+
+
   StockDetails.findAll({
     where: {
       code: stockCode,
@@ -298,22 +315,17 @@ exports.getEachStockDetails = async (req, res) => {
       const response = {};
       for (const tab in tab_details) {
         for (let parameter of tab_details[tab]) {
-          await Formula.findAll({
-            where: {
-              parameter: parameter,
-            },
-          })
-            .then((formulaList) => {
-              let temp = getCalculatedResults(stock_list, formulaList, parameter);
+         
+          let formula = [];
+          let found = formula_List.find(each => { if (each.parameter == parameter) { return each } });
+          found ? formula.push(found) : null;
+          let temp = getCalculatedResults(stock_list, formula, parameter);
               let tempObj = {
                 "parameter": parameter,
                 "yearWiseValue": temp[0].yearWiseValue
               }
               response[tab] ? response[tab].push(tempObj) : response[tab] = [tempObj];
-            })
-            .catch((err) => {
-              res.status(500).send({ message: err.message });
-            });
+            
         }
       }
       res.status(200).send(response);
