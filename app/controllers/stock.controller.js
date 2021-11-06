@@ -160,6 +160,7 @@ calculate = (details, expression, requiredParameters, prevYearParameters, preYea
       }
     }
   }
+  //console.log("Data to formula =>",data);
   const ast = parse(expression);
   const result = eval(ast, data);
   if (!isNaN(result)) {
@@ -271,7 +272,11 @@ exports.getEachStockDetails = async (req, res) => {
   const stockCode = req.query.code;
   const tab_details = {};
   let formula_List = null;
-  await TabDetails.findAll()
+  await TabDetails.findAll({
+    order: [
+      ['tabName'], ['position']
+    ]
+  })
     .then((tab_list) => {
       if (tab_list.length == 0) {
         return res.status(404).send({ message: "Tab list Not found." });
@@ -284,7 +289,6 @@ exports.getEachStockDetails = async (req, res) => {
     .catch((err) => {
       res.status(500).send({ message: err.message });
     });
-
     await Formula.findAll()
     .then((formulaList) => {
       formula_List = formulaList;
@@ -314,13 +318,16 @@ exports.getEachStockDetails = async (req, res) => {
       }
       const response = {};
       for (const tab in tab_details) {
+        let index = 0;
         for (let parameter of tab_details[tab]) {
-         
+          console.log("Parameter ",parameter);
+          index++;
           let formula = [];
           let found = formula_List.find(each => { if (each.parameter == parameter) { return each } });
           found ? formula.push(found) : null;
           let temp = getCalculatedResults(stock_list, formula, parameter);
               let tempObj = {
+                "S.No." : index,
                 "parameter": parameter,
                 "yearWiseValue": temp[0].yearWiseValue
               }
