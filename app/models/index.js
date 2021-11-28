@@ -31,6 +31,9 @@ db.tab = require("../models/tabdetails.model")(sequelize, Sequelize);
 db.formula = require("../models/formula.model")(sequelize, Sequelize);
 db.portifolio = require("../models/portifolio.model")(sequelize, Sequelize);
 
+db.notification = require("../models/notification.model")(sequelize, Sequelize);
+db.news = require("../models/news.model")(sequelize, Sequelize);
+
 db.role.belongsToMany(db.user, {
   through: "user_roles",
   foreignKey: "roleId",
@@ -41,6 +44,14 @@ db.user.belongsToMany(db.role, {
   through: "user_roles",
   foreignKey: "userId",
   otherKey: "roleId"
+});
+
+db.notification.hasMany(db.news, {
+  foreignKey: 'code'
+});
+
+db.news.belongsTo(db.notification , {
+  foreignKey: 'code'
 });
 
 db.ROLES = ["user", "admin"];
