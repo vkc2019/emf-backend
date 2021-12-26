@@ -145,12 +145,14 @@ exports.getFormulas = (req, res) => {
 };
 
 calculate = (details, expression, requiredParameters, prevYearParameters, preYearDetails) => {
+ 
   const params = requiredParameters.split(',');
   const data = new Map();
   for (const item of params) {
     data[item.trim()] = details[item.trim()];
   }
   if (prevYearParameters) {
+    //("Pre in cal =>",preYearDetails);
     const preParams = prevYearParameters.split(',');
     for (const item of preParams) {
       if (preYearDetails == null) {
@@ -194,8 +196,9 @@ exports.getStockListByParams = (req, res) => {
       industry: [industryList.split(",")],
     },
     order: [
-      ['industry', 'DESC'],
-      ['year', 'DESC']
+      ['industry'],
+      ['security_name'],
+      ['year']
     ]
   })
     .then((stock_list) => {
@@ -232,7 +235,7 @@ getCalculatedResults = (stock_list, formulaList, parameter) => {
     console.log(prevYearParameters)
     let preYearDetails = null;
     for (const st of stock_list) {
-
+     // console.log("Name =>",  st.security_name , "Year => ",st.year);
       if (!finalList[st.code]) {
         finalList[st.code] = {};
         finalList[st.code].code = st.code;
@@ -242,9 +245,10 @@ getCalculatedResults = (stock_list, formulaList, parameter) => {
         finalList[st.code].yearWiseValue = {};
         preYearDetails = null;
       }
+     // console.log("Previous Year PArams => ",preYearDetails);
       finalList[st.code].yearWiseValue[st.year] = calculate(st, formula, requiredParameters, prevYearParameters, preYearDetails);
       if (prevYearParameters) {
-          preYearDetails = st;
+          preYearDetails = JSON.parse(JSON.stringify(st));
       }
     }
   } else {
@@ -309,7 +313,7 @@ exports.getEachStockDetails = async (req, res) => {
       code: stockCode,
     },
     order: [
-      ['year', 'DESC']
+      ['year']
     ]
   })
     .then(async (stock_list) => {
