@@ -59,10 +59,10 @@ exports.getNotificationList = (req, res) => {
                 "news_type": news.news_type
               }
               if (response[Status_tabName]) {
-                response[Status_tabName][news.code] ? response[Status_tabName][news.code].push(tempObj) : response[Status_tabName][news.code] = [tempObj];
+                response[Status_tabName][each.name] ? response[Status_tabName][each.name].push(tempObj) : response[Status_tabName][each.name] = [tempObj];
               } else {
                 response[Status_tabName] = new Map();
-                response[Status_tabName][news.code] = [tempObj];
+                response[Status_tabName][each.name] = [tempObj];
               }
             };
           });
@@ -82,16 +82,16 @@ exports.getNotificationList = (req, res) => {
             "attachmentName": news.attachmentName,
             "newsSub": news.newsSub ? binaryAgent(news.newsSub) : null,
             "dateTimeStamp": news.dateTimeStamp,
-            "comments": news.comments ? binaryAgent(news.comments) : null,
+            "comments": news.comments ? binaryAgent(news.comments) : [],
             "content": news.content ? binaryAgent(news.content) : null,
             "status": news.status,
             "news_type": news.news_type
           }
           if (response[Status_tabName]) {
-            response[Status_tabName][news.code] ? response[Status_tabName][news.code].push(tempObj) : response[Status_tabName][news.code] = [tempObj];
+            response[Status_tabName][each.name] ? response[Status_tabName][each.name].push(tempObj) : response[Status_tabName][each.name] = [tempObj];
           } else {
             response[Status_tabName] = new Map();
-            response[Status_tabName][news.code] = [tempObj];
+            response[Status_tabName][each.name] = [tempObj];
           }
         };
       });
@@ -113,15 +113,15 @@ binaryAgent = (str) => {
 
 getTabNameAdmin = (status) => {
   switch (status) {
-    case "Approved": return "Saved News Items";
+    case "Approved": return "Completed News Items";
     case "Submitted": return "Pending News Items";
   }
 }
 
 getTabNameUser = (status) => {
   switch (status) {
-    case "Approved": return "Saved News Items(Readonly)";
-    case "Submitted": return "Saved News Items (Readonly)";
+    case "Approved": return "Saved News Items";
+    case "Submitted": return "Saved News Items";
     case "OPEN": return "New News Items";
     case "Denied": return "Rejected News Items";
   }
