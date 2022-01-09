@@ -52,7 +52,7 @@ exports.getNotificationList = (req, res) => {
                 "attachmentName": news.attachmentName,
                 "newsSub": news.newsSub ? binaryAgent(news.newsSub) : null,
                 "dateTimeStamp": news.dateTimeStamp,
-                "comments": news.comments ? binaryAgent(news.comments) : null,
+                "comments": news.comments ? JSON.parse(binaryAgent(news.comments)) : null,
                 "content": news.content ? binaryAgent(news.content) : null,
                 "assignee_usrId": each.assignee_usrId,
                 "status": news.status,
@@ -82,7 +82,7 @@ exports.getNotificationList = (req, res) => {
             "attachmentName": news.attachmentName,
             "newsSub": news.newsSub ? binaryAgent(news.newsSub) : null,
             "dateTimeStamp": news.dateTimeStamp,
-            "comments": news.comments ? binaryAgent(news.comments) : [],
+            "comments": news.comments ? JSON.parse(binaryAgent(news.comments)) : [],
             "content": news.content ? binaryAgent(news.content) : null,
             "status": news.status,
             "news_type": news.news_type
@@ -120,7 +120,7 @@ getTabNameAdmin = (status) => {
 
 getTabNameUser = (status) => {
   switch (status) {
-    case "Approved": return "Saved News Items";
+    //case "Approved": return "Saved News Items";
     case "Submitted": return "Saved News Items";
     case "OPEN": return "New News Items";
     case "Denied": return "Rejected News Items";
