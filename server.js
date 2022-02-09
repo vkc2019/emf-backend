@@ -1,15 +1,11 @@
+const serverless = require('serverless-http');
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 
 const app = express();
 
-var corsOptions = {
-  origin: "http://knics.in"
-  //origin: "http://localhost:4200",
-};
-
-app.use(cors(corsOptions));
+app.use(cors());
 
 // parse requests of content-type - application/json
 app.use(bodyParser.json());
@@ -31,24 +27,28 @@ app.get("/", (req, res) => {
   res.json({ message: "Welcome to emf application." });
 });
 
+app.use(function (req, res, next) {
+  //Enabling CORS
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, x-client-key, x-client-token, x-client-secret, Authorization"
+  );
+  next();
+});
+
 require("./app/routes/auth.routes")(app);
 require("./app/routes/user.routes")(app);
 require("./app/routes/stock.routes")(app);
 require("./app/routes/notifications.routes")(app);
 
-// set port, listen for requests
-const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}.`);
-});
 
-// function initial() {
-//   Role.create({
-//     id: 1,
-//     name: "user",
-//   });
-//   Role.create({
-//     id: 2,
-//     name: "admin",
-//   });
-// }
+// For local un comment this section 
+// set port, listen for requests
+// const PORT = process.env.PORT || 8080;
+// app.listen(PORT, () => {
+//   console.log(`Server is running on port ${PORT}.`);
+// });
+
+module.exports.handler = serverless(app);

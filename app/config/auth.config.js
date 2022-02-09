@@ -1,3 +1,3 @@
 module.exports = {
-    secret: "emffinance-secret-key"
+  secret: process.env.JWT_SECRET || "emffinance-secret-key",
 };

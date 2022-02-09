@@ -11,14 +11,14 @@ module.exports = function(app) {
   });
 
   app.get(
-    "/api/notificationList",
+    "/api/notificationlist",
     [
       verifySignUp.checkRolesExisted
     ],
     controller.getNotificationList
   );
   app.post(
-    "/api/updateNews",
+    "/api/updatenews",
     [
       verifySignUp.checkRolesExisted
     ],

@@ -58,7 +58,7 @@ module.exports = function(app) {
   );
 
   app.get(
-    "/api/eachStock",
+    "/api/eachstock",
     [
       verifySignUp.checkRolesExisted
     ],
@@ -66,7 +66,7 @@ module.exports = function(app) {
   );
 
   app.get(
-    "/api/latestYear",
+    "/api/latestyear",
     [
       verifySignUp.checkRolesExisted
     ],
