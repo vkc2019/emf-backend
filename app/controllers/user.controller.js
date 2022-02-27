@@ -1,3 +1,6 @@
+const db = require("../models");
+const UserDetails = db.user ;
+
 exports.allAccess = (req, res) => {
     res.status(200).send("Public Content.");
   };
@@ -12,4 +15,14 @@ exports.allAccess = (req, res) => {
   
   exports.moderatorBoard = (req, res) => {
     res.status(200).send("Moderator Content.");
+  };
+
+  exports.getUserList = (req, res) => {
+    UserDetails.findAll({attributes: ['id', 'username']})
+      .then((user_list) => {
+        res.status(200).send(user_list);
+      })
+      .catch((err) => {
+        res.status(500).send({ message: err.message });
+      });
   };
