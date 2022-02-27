@@ -42,6 +42,7 @@ require("./app/routes/auth.routes")(app);
 require("./app/routes/user.routes")(app);
 require("./app/routes/stock.routes")(app);
 require("./app/routes/notifications.routes")(app);
+require("./app/routes/stockAllocation.routes")(app);
 
 
 // For local un comment this section 
