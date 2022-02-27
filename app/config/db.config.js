@@ -1,5 +1,5 @@
 module.exports = {
-  HOST: process.env.DB_HOST || "3.140.194.136",
+  HOST: process.env.DB_HOST || "3.14.55.79",
   USER: process.env.DB_USER || "root",
   PASSWORD: process.env.DB_PASSWORD || "Cherry@2020",
   DB: process.env.DB_NAME || "EMF",
