@@ -11,7 +11,7 @@ module.exports = function(app) {
   });
 
   app.get(
-    "/api/allStocklist",
+    "/api/all_stocklist",
     [
       verifySignUp.checkRolesExisted
     ],
@@ -19,7 +19,7 @@ module.exports = function(app) {
   );
 
   app.get(
-    "/api/notificationUserlist",
+    "/api/notification_user_list",
     [
       verifySignUp.checkRolesExisted
     ],
@@ -27,7 +27,7 @@ module.exports = function(app) {
   );
 
   app.post(
-    "/api/updateNotificationList",
+    "/api/update_notification_list",
     [
       verifySignUp.checkRolesExisted
     ],
