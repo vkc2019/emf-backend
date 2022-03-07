@@ -32,7 +32,7 @@ exports.getNotificationList = (req, res) => {
           ['industry']
         ]
       }).then(async (adminList) => {
-        console.log("ADMIN LIST ==> ", adminList);
+       // console.log("ADMIN LIST ==> ", adminList);
         for (const each of adminList) {
 
           await each.getStocksNewsDetails({
@@ -43,7 +43,7 @@ exports.getNotificationList = (req, res) => {
               ]
             }
           }).then((newsItems) => {
-            console.log("ADMIN LIST EACH ==> ", newsItems);
+           // console.log("ADMIN LIST EACH ==> ", newsItems);
             for (const news of newsItems) {
               let Status_tabName = getTabNameAdmin(news.status);
               let tempObj = {
@@ -56,7 +56,9 @@ exports.getNotificationList = (req, res) => {
                 "content": news.content ? binaryAgent(news.content) : null,
                 "assignee_usrId": each.assignee_usrId,
                 "status": news.status,
-                "news_type": news.news_type
+                "news_type": news.news_type,
+                "security_id" : each.security_id,
+                "bseLink" : getBSELink(each),
               }
               if (response[Status_tabName]) {
                 response[Status_tabName][each.name] ? response[Status_tabName][each.name].push(tempObj) : response[Status_tabName][each.name] = [tempObj];
@@ -85,7 +87,9 @@ exports.getNotificationList = (req, res) => {
             "comments": news.comments ? JSON.parse(binaryAgent(news.comments)) : [],
             "content": news.content ? binaryAgent(news.content) : null,
             "status": news.status,
-            "news_type": news.news_type
+            "news_type": news.news_type,
+            "security_id" : each.security_id,
+            "bseLink" : getBSELink(each),
           }
           if (response[Status_tabName]) {
             response[Status_tabName][each.name] ? response[Status_tabName][each.name].push(tempObj) : response[Status_tabName][each.name] = [tempObj];
@@ -129,7 +133,7 @@ getTabNameUser = (status) => {
 
 exports.updateNewsDetails = (req, res) => {
   let request = req.body;
-  console.log(request);
+  //console.log(request);
   NewsDetails.update(
     request.toBeUpdated, {
       where: {
@@ -140,9 +144,17 @@ exports.updateNewsDetails = (req, res) => {
       }
   }
   ).then((result)=>{
-    console.log(result);
+   // console.log(result);
     res.status(200).send("SUCCESS");
   }).catch((err)=>{
     err.status(500).send({ message: err.message });
   })
+}
+
+getBSELink = (stock) => {
+  console.log(stock);
+  let name = stock.name.replace(/[^a-zA-Z ]/g, "").toLowerCase().split(" ").join("-");
+  let securityId = stock.security_id.toLowerCase();
+  return "https://www.bseindia.com/stock-share-price/"+name+"/"+securityId+"/"+stock.code+"/corp-announcements/";
+
 }

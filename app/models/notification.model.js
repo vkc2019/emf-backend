@@ -5,6 +5,7 @@ module.exports = (sequelize, Sequelize) => {
       industry: { type: Sequelize.STRING },
       assignee_usrId: { type: Sequelize.INTEGER },
       approver_usrId: { type: Sequelize.INTEGER },
+      security_id : { type: Sequelize.STRING },
     }, {
       timestamps: false
     });

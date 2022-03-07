@@ -19,29 +19,9 @@ const sequelize = new Sequelize(
   }
 );
 
-const sequelize2 = new Sequelize(
-  "bithggd42sjj3jykloik",
-  config.USER,
-  config.PASSWORD,
-  {
-    host: config.HOST,
-    dialect: config.dialect,
-    operatorsAliases: 0,
-
-    pool: {
-      max: config.pool.max,
-      min: config.pool.min,
-      acquire: config.pool.acquire,
-      idle: config.pool.idle
-    }
-  }
-);
-
 const db = {};
 
 db.Sequelize = Sequelize;
-db.sequelize = sequelize;
-db.sequelize2 = sequelize2;
 
 db.user = require("../models/user.model.js")(sequelize, Sequelize);
 db.role = require("../models/role.model.js")(sequelize, Sequelize);
@@ -52,7 +32,7 @@ db.portifolio = require("../models/portifolio.model")(sequelize, Sequelize);
 
 db.notification = require("../models/notification.model")(sequelize, Sequelize);
 db.news = require("../models/news.model")(sequelize, Sequelize);
-db.stockList = require("../models/stockList.model")(sequelize2, Sequelize);
+db.stockList = require("../models/stockList.model")(sequelize, Sequelize);
 
 db.role.belongsToMany(db.user, {
   through: "user_roles",
@@ -73,6 +53,7 @@ db.notification.hasMany(db.news, {
 db.news.belongsTo(db.notification , {
   foreignKey: 'code'
 });
+
 
 db.ROLES = ["user", "admin"];
 

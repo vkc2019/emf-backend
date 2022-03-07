@@ -4,7 +4,7 @@ const NotificationList = db.notification;
 const Op = db.Sequelize.Op;
 
 exports.getStockList = (req, res) => {
-    StockList.findAll({attributes: ['code', 'name', 'industry']})
+    StockList.findAll({attributes: ['code', 'name', 'industry', 'security_id']})
       .then((stock_list) => {
         res.status(200).send(stock_list);
       })

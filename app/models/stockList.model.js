@@ -3,6 +3,7 @@ module.exports = (sequelize, Sequelize) => {
       code: { type: Sequelize.INTEGER ,  primaryKey: true },
       name: { type: Sequelize.STRING },
       industry: { type: Sequelize.STRING },
+      security_id: { type: Sequelize.STRING },
     }, {
       freezeTableName: true,
       timestamps: false
