@@ -15,7 +15,7 @@ exports.getNotificationList = async (req, res) => {
   const resData = await db.query(query);
   if (resData) {
     for (const news of resData) {
-      let Status_tabName = getTabNameUser(news.status);
+      let Status_tabName = news.approver_usrId == userId ? getTabNameAdmin(news.status) : getTabNameUser(news.status);
       let tempObj = {
         "code": news.code,
         "categoryName": news.categoryName,
@@ -64,8 +64,6 @@ getTabNameUser = (status) => {
     case "Submitted": return "Saved News Items";
     case "OPEN": return "New News Items";
     case "Denied": return "Rejected News Items";
-    case "Approved": return "Completed News Items";
-    case "Submitted": return "Pending News Items";
   }
 }
 
