@@ -2,7 +2,7 @@ const db = require("../models");
 const StockDetails = db.stock;
 const TabDetails = db.tab;
 const Formula = db.formula;
-const sequelize = db.sequelize;
+const sequelize = db.Sequelize;
 const Portifolio = db.portifolio;
 
 const { parse, eval } = require('expression-eval');

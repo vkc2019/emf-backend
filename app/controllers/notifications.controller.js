@@ -1,109 +1,45 @@
-const db = require("../models");
-const { Op } = require("sequelize");
-const NotificationList = db.notification;
-const NewsDetails = db.news;
+const db = require("../helper/db");
 
-exports.getNotificationList = (req, res) => {
+exports.getNotificationList = async (req, res) => {
   const userId = req.query.id;
   const role = req.query.role;
+  const response = {};
+  let orCondition = '';
+  if (role == "ADMIN") {
+    orCondition = `OR ( approver_usrId=${userId}  AND ( status='Approved' OR status='Submitted' ) )`
+  }
+  let query = `SELECT snl.*,snd.* FROM stocksNotificationLists snl
+  INNER JOIN stocksNewsDetails snd on snd.code = snl.code
+  where assignee_usrId=${userId} ${orCondition}`;
 
-  NotificationList.findAll({
-    attributes: { exclude: ['id'] },
-    where: {
-      assignee_usrId: userId,
-    },
-    include: [NewsDetails],
-    order: [
-      ['industry']
-    ]
-  }).then(async (list) => {
-    const response = {};
-    if (role == "ADMIN") {
-      console.log("I am Admin");
-      await NotificationList.findAll({
-        attributes: { exclude: ['id'] },
-        where: {
-          approver_usrId: userId,
-        },
-        include: [{
-          model: NewsDetails
-        }],
-        order: [
-          ['industry']
-        ]
-      }).then(async (adminList) => {
-       // console.log("ADMIN LIST ==> ", adminList);
-        for (const each of adminList) {
-
-          await each.getStocksNewsDetails({
-            where: {
-              [Op.or]: [
-                { status: "Approved" },
-                { status: "Submitted" }
-              ]
-            }
-          }).then((newsItems) => {
-           // console.log("ADMIN LIST EACH ==> ", newsItems);
-            for (const news of newsItems) {
-              let Status_tabName = getTabNameAdmin(news.status);
-              let tempObj = {
-                "code": news.code,
-                "categoryName": news.categoryName,
-                "attachmentName": news.attachmentName,
-                "newsSub": news.newsSub ? binaryAgent(news.newsSub) : null,
-                "dateTimeStamp": news.dateTimeStamp,
-                "comments": news.comments ? JSON.parse(binaryAgent(news.comments)) : null,
-                "content": news.content ? binaryAgent(news.content) : null,
-                "assignee_usrId": each.assignee_usrId,
-                "status": news.status,
-                "news_type": news.news_type,
-                "security_id" : each.security_id,
-                "bseLink" : getBSELink(each),
-              }
-              if (response[Status_tabName]) {
-                response[Status_tabName][each.name] ? response[Status_tabName][each.name].push(tempObj) : response[Status_tabName][each.name] = [tempObj];
-              } else {
-                response[Status_tabName] = new Map();
-                response[Status_tabName][each.name] = [tempObj];
-              }
-            };
-          });
-        }
-
-      }).catch((err) => {
-        res.status(500).send({ message: err.message });
-      });
-    }
-    for (const each of list) {
-      await each.getStocksNewsDetails().then((newsItems) => {
-        for (const news of newsItems) {
-          let Status_tabName = getTabNameUser(news.status);
-          let tempObj = {
-            "code": news.code,
-            "categoryName": news.categoryName,
-            "attachmentName": news.attachmentName,
-            "newsSub": news.newsSub ? binaryAgent(news.newsSub) : null,
-            "dateTimeStamp": news.dateTimeStamp,
-            "comments": news.comments ? JSON.parse(binaryAgent(news.comments)) : [],
-            "content": news.content ? binaryAgent(news.content) : null,
-            "status": news.status,
-            "news_type": news.news_type,
-            "security_id" : each.security_id,
-            "bseLink" : getBSELink(each),
-          }
-          if (response[Status_tabName]) {
-            response[Status_tabName][each.name] ? response[Status_tabName][each.name].push(tempObj) : response[Status_tabName][each.name] = [tempObj];
-          } else {
-            response[Status_tabName] = new Map();
-            response[Status_tabName][each.name] = [tempObj];
-          }
-        };
-      });
+  const resData = await db.query(query);
+  if (resData) {
+    for (const news of resData) {
+      let Status_tabName = getTabNameUser(news.status);
+      let tempObj = {
+        "code": news.code,
+        "categoryName": news.categoryName,
+        "attachmentName": news.attachmentName,
+        "newsSub": news.newsSub ? binaryAgent(news.newsSub) : null,
+        "dateTimeStamp": news.dateTimeStamp,
+        "comments": news.comments ? JSON.parse(binaryAgent(news.comments)) : [],
+        "content": news.content ? binaryAgent(news.content) : null,
+        "status": news.status,
+        "news_type": news.news_type,
+        "security_id": news.security_id,
+        "bseLink": getBSELink(news),
+      }
+      if (response[Status_tabName]) {
+        response[Status_tabName][news.name] ? response[Status_tabName][news.name].push(tempObj) : response[Status_tabName][news.name] = [tempObj];
+      } else {
+        response[Status_tabName] = new Map();
+        response[Status_tabName][news.name] = [tempObj];
+      }
     }
     res.status(200).send(response);
-  }).catch((err) => {
+  } else {
     res.status(500).send({ message: err.message });
-  });
+  }
 };
 
 binaryAgent = (str) => {
@@ -128,33 +64,32 @@ getTabNameUser = (status) => {
     case "Submitted": return "Saved News Items";
     case "OPEN": return "New News Items";
     case "Denied": return "Rejected News Items";
+    case "Approved": return "Completed News Items";
+    case "Submitted": return "Pending News Items";
   }
 }
 
-exports.updateNewsDetails = (req, res) => {
+exports.updateNewsDetails = async (req, res) => {
   let request = req.body;
-  //console.log(request);
-  NewsDetails.update(
-    request.toBeUpdated, {
-      where: {
-        [Op.and]: [
-          { code: request.code },
-          { dateTimeStamp: request.dateTimeStamp }
-        ]
-      }
-  }
-  ).then((result)=>{
-   // console.log(result);
+
+  let sql = `update stocksNewsDetails set 
+  status='${request.toBeUpdated.status}',
+  news_type='${request.toBeUpdated.news_type}',
+  comments='${request.toBeUpdated.comments}'
+  WHERE code='${request.code} AND dateTimeStamp = '${request.dateTimeStamp}' `
+  let dbRes = await db.query(sql);
+  if (dbRes) {
     res.status(200).send("SUCCESS");
-  }).catch((err)=>{
-    err.status(500).send({ message: err.message });
-  })
+  } else {
+    res.status(500).send({ message: `error in updating the news` });
+  }
+
 }
 
 getBSELink = (stock) => {
   console.log(stock);
   let name = stock.name.replace(/[^a-zA-Z ]/g, "").toLowerCase().split(" ").join("-");
   let securityId = stock.security_id.toLowerCase();
-  return "https://www.bseindia.com/stock-share-price/"+name+"/"+securityId+"/"+stock.code+"/corp-announcements/";
+  return "https://www.bseindia.com/stock-share-price/" + name + "/" + securityId + "/" + stock.code + "/corp-announcements/";
 
 }

@@ -1,0 +1,8 @@
+{
+    "mainDbConfig": {
+        "host": "3.14.55.79",
+        "user": "root",
+        "password": "Cherry@2020",
+        "database": "EMF"
+    }
+}
