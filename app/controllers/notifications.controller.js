@@ -1,4 +1,5 @@
 const db = require("../helper/db");
+const moment = require("moment");
 
 exports.getNotificationList = async (req, res) => {
   const userId = req.query.id;
@@ -69,12 +70,11 @@ getTabNameUser = (status) => {
 
 exports.updateNewsDetails = async (req, res) => {
   let request = req.body;
-
   let sql = `update stocksNewsDetails set 
   status='${request.toBeUpdated.status}',
   news_type='${request.toBeUpdated.news_type}',
   comments='${request.toBeUpdated.comments}'
-  WHERE code='${request.code} AND dateTimeStamp = '${request.dateTimeStamp}' `
+  WHERE code=${request.code} AND dateTimeStamp = '${moment(request.dateTimeStamp).format('YYYY-MM-DD HH:mm:ss')}';`
   let dbRes = await db.query(sql);
   if (dbRes) {
     res.status(200).send("SUCCESS");
