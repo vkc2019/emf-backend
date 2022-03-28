@@ -4,7 +4,7 @@ exports.getQuaterlyTrends = async (req, res) => {
     const code = req.query.code;
     const response = [];
     
-    let query = "SELECT `quater`,`Revenue`,`Other Income`,`Total Income`,`Expenditure`,`Interest`,`PBDT`,`Depreciation`,`Tax`,`PBT`,`Net Profit`,`Equity`,`EPS`,`CEPS`,`OPM %`,`NPM %` FROM stockQuaterlyDetails where code =" + code order by id;
+    let query = "SELECT `quater`,`Revenue`,`Other Income`,`Total Income`,`Expenditure`,`Interest`,`PBDT`,`Depreciation`,`Tax`,`PBT`,`Net Profit`,`Equity`,`EPS`,`CEPS`,`OPM %`,`NPM %` FROM stockQuaterlyDetails where code =" + code +" order by id";
   
     const resData = await db.query(query);
     //console.log(resData);
