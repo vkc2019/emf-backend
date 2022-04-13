@@ -18,9 +18,11 @@ exports.getNotificationList = async (req, res) => {
   try {
     const resData = await db.query(query);
     if (resData) {
+      let id = 1;
       for (const news of resData) {
         let Status_tabName = news.approver_usrId == userId ? getTabNameAdmin(news.status) : getTabNameUser(news.status);
         let tempObj = {
+          "id": id++,
           "code": news.code,
           "categoryName": news.categoryName,
           "attachmentName": news.attachmentName,
@@ -77,18 +79,31 @@ getTabNameUser = (status) => {
 
 exports.updateNewsDetails = async (req, res) => {
   let request = req.body;
-  let sql = `update stocksNewsDetails set 
-  status='${request.toBeUpdated.status}',
-  news_type='${request.toBeUpdated.news_type}',
-  comments='${request.toBeUpdated.comments}'
-  WHERE code=${request.code} AND dateTimeStamp = '${moment(request.dateTimeStamp).format('YYYY-MM-DD HH:mm:ss')}';`
-  let dbRes = await db.query(sql);
-  if (dbRes) {
+  if (request.items) {
+    let request = req.body;
+    const items = request.items;
+    items.map(async el => {
+      let sql = `update stocksNewsDetails set 
+      status='${el.toBeUpdated.status}',
+      news_type='${el.toBeUpdated.news_type}',
+      comments='${el.toBeUpdated.comments}'
+      WHERE code=${el.code} AND dateTimeStamp = '${moment(el.dateTimeStamp).format('YYYY-MM-DD HH:mm:ss')}';`
+      await db.query(sql);
+    });
     res.status(200).send("SUCCESS");
   } else {
-    res.status(500).send({ message: `error in updating the news` });
+    let sql = `update stocksNewsDetails set 
+    status='${request.toBeUpdated.status}',
+    news_type='${request.toBeUpdated.news_type}',
+    comments='${request.toBeUpdated.comments}'
+    WHERE code=${request.code} AND dateTimeStamp = '${moment(request.dateTimeStamp).format('YYYY-MM-DD HH:mm:ss')}';`
+    let dbRes = await db.query(sql);
+    if (dbRes) {
+      res.status(200).send("SUCCESS");
+    } else {
+      res.status(500).send({ message: `error in updating the news` });
+    }
   }
-
 }
 
 getBSELink = (stock) => {
