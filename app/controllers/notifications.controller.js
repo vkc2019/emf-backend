@@ -7,40 +7,47 @@ exports.getNotificationList = async (req, res) => {
   const response = {};
   let orCondition = '';
   if (role == "ADMIN") {
-    orCondition = `OR ( approver_usrId=${userId}  AND ( status='Approved' OR status='Submitted' ) )`
+    // orCondition = `OR ( approver_usrId=${userId}  AND ( status='Approved' OR status='Submitted' ) )`;
+    orCondition = ` OR ( approver_usrId=${userId}  AND status='Approved' AND news_type <> 'Neutral' )`
+    orCondition += ` OR ( approver_usrId=${userId}  AND status='Submitted')`
   }
   let query = `SELECT snl.*,snd.* FROM stocksNotificationLists snl
   INNER JOIN stocksNewsDetails snd on snd.code = snl.code
   where assignee_usrId=${userId} ${orCondition}`;
-
-  const resData = await db.query(query);
-  if (resData) {
-    for (const news of resData) {
-      let Status_tabName = news.approver_usrId == userId ? getTabNameAdmin(news.status) : getTabNameUser(news.status);
-      let tempObj = {
-        "code": news.code,
-        "categoryName": news.categoryName,
-        "attachmentName": news.attachmentName,
-        "newsSub": news.newsSub ? binaryAgent(news.newsSub) : null,
-        "dateTimeStamp": news.dateTimeStamp,
-        "comments": news.comments ? JSON.parse(binaryAgent(news.comments)) : [],
-        "content": news.content ? binaryAgent(news.content) : null,
-        "status": news.status,
-        "news_type": news.news_type,
-        "security_id": news.security_id,
-        "bseLink": getBSELink(news),
+  console.log(query);
+  try {
+    const resData = await db.query(query);
+    if (resData) {
+      for (const news of resData) {
+        let Status_tabName = news.approver_usrId == userId ? getTabNameAdmin(news.status) : getTabNameUser(news.status);
+        let tempObj = {
+          "code": news.code,
+          "categoryName": news.categoryName,
+          "attachmentName": news.attachmentName,
+          "newsSub": news.newsSub ? binaryAgent(news.newsSub) : null,
+          "dateTimeStamp": news.dateTimeStamp,
+          "comments": news.comments ? JSON.parse(binaryAgent(news.comments)) : [],
+          "content": news.content ? binaryAgent(news.content) : null,
+          "status": news.status,
+          "news_type": news.news_type,
+          "security_id": news.security_id,
+          "bseLink": getBSELink(news),
+        }
+        if (response[Status_tabName]) {
+          response[Status_tabName][news.name] ? response[Status_tabName][news.name].push(tempObj) : response[Status_tabName][news.name] = [tempObj];
+        } else {
+          response[Status_tabName] = new Map();
+          response[Status_tabName][news.name] = [tempObj];
+        }
       }
-      if (response[Status_tabName]) {
-        response[Status_tabName][news.name] ? response[Status_tabName][news.name].push(tempObj) : response[Status_tabName][news.name] = [tempObj];
-      } else {
-        response[Status_tabName] = new Map();
-        response[Status_tabName][news.name] = [tempObj];
-      }
+      res.status(200).send(response);
+    } else {
+      res.status(500).send({ message: 'no data' });
     }
-    res.status(200).send(response);
-  } else {
+  } catch (err) {
     res.status(500).send({ message: err.message });
   }
+  
 };
 
 binaryAgent = (str) => {
