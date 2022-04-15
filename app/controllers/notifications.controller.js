@@ -49,7 +49,7 @@ exports.getNotificationList = async (req, res) => {
   } catch (err) {
     res.status(500).send({ message: err.message });
   }
-  
+
 };
 
 binaryAgent = (str) => {
@@ -103,6 +103,32 @@ exports.updateNewsDetails = async (req, res) => {
     } else {
       res.status(500).send({ message: `error in updating the news` });
     }
+  }
+}
+
+exports.getIgnoreNotificationsList = async (req, res) => {
+  try {
+    let sql = `SELECT * FROM  ignore_keywords_master`;
+    const resp = await db.query(sql);
+    res.status(200).send(resp);
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+}
+
+exports.createUpdateNotification = async (req, res) => {
+  const request = req.body;
+  let sql ='';
+  try {
+    if (request.keyWordsId) {      
+      sql = `update ignore_keywords_master set keywords='${request.keywords}',isDynamic=${request.isDynamic}, active=${request.active} WHERE keyWordsId=${request.keyWordsId}`;
+    } else {
+      sql = `INSERT INTO ignore_keywords_master(keywords,isDynamic, active) VALUES ( '${request.keywords}',${request.isDynamic},1)`;
+    }
+    await db.query(sql);
+    res.status(200).send(request.keyWordsId ? { message: 'Updated Successfully' } : { message: 'Added Successfully' });
+  } catch (err) {
+    res.status(500).send(err.message);
   }
 }
 

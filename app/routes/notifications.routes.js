@@ -11,6 +11,21 @@ module.exports = function(app) {
   });
 
   app.get(
+    "/api/ignore-notifications",
+    [
+      verifySignUp.checkRolesExisted
+    ],
+    controller.getIgnoreNotificationsList
+  );
+  app.post(
+    "/api/ignore-notifications",
+    [
+      verifySignUp.checkRolesExisted
+    ],
+    controller.createUpdateNotification
+  );
+
+  app.get(
     "/api/notificationlist",
     [
       verifySignUp.checkRolesExisted
