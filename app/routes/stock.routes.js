@@ -11,6 +11,22 @@ module.exports = function(app) {
   });
 
   app.get(
+    "/api/all_stocks_config",
+    [
+      verifySignUp.checkRolesExisted
+    ],
+    controller.getAllStocksConfigList
+  );
+
+  app.post(
+    "/api/all_stocks_config",
+    [
+      verifySignUp.checkRolesExisted
+    ],
+    controller.updateStockConfig
+  );
+
+  app.get(
     "/api/stock",
     [
       verifySignUp.checkRolesExisted

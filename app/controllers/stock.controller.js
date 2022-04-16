@@ -1,4 +1,5 @@
 const db = require("../models");
+const dbConnection = require("../helper/db");
 const StockDetails = db.stock;
 const TabDetails = db.tab;
 const Formula = db.formula;
@@ -24,6 +25,29 @@ exports.getStockList = (req, res) => {
     .catch((err) => {
       res.status(500).send({ message: err.message });
     });
+};
+
+exports.getAllStocksConfigList = async (req, res) => {
+  try {
+    const query = `SElECT * FROM adm_stocks ast INNER JOIN adm_stocks_config astc ON ast.code = astc.code`;
+    const resp = await dbConnection.query(query);
+    res.status(200).send(resp);
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
+exports.updateStockConfig = async (req, res) => {
+  const { news, ema, code, active } = req.body;
+  try {
+    if(code){
+      const query = `UPDATE adm_stocks_config set news=${news},ema=${ema},active=${active} WHERE code=${code}`;
+      await dbConnection.query(query);
+    }
+    res.status(200).send({ message: 'successfully Updated' });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
 };
 
 exports.getIndustryList = (req, res) => {
@@ -145,7 +169,7 @@ exports.getFormulas = (req, res) => {
 };
 
 calculate = (details, expression, requiredParameters, prevYearParameters, preYearDetails) => {
- 
+
   const params = requiredParameters.split(',');
   const data = new Map();
   for (const item of params) {
@@ -235,7 +259,7 @@ getCalculatedResults = (stock_list, formulaList, parameter) => {
     console.log(prevYearParameters)
     let preYearDetails = null;
     for (const st of stock_list) {
-     // console.log("Name =>",  st.security_name , "Year => ",st.year);
+      // console.log("Name =>",  st.security_name , "Year => ",st.year);
       if (!finalList[st.code]) {
         finalList[st.code] = {};
         finalList[st.code].code = st.code;
@@ -245,10 +269,10 @@ getCalculatedResults = (stock_list, formulaList, parameter) => {
         finalList[st.code].yearWiseValue = {};
         preYearDetails = null;
       }
-     // console.log("Previous Year PArams => ",preYearDetails);
+      // console.log("Previous Year PArams => ",preYearDetails);
       finalList[st.code].yearWiseValue[st.year] = calculate(st, formula, requiredParameters, prevYearParameters, preYearDetails);
       if (prevYearParameters) {
-          preYearDetails = JSON.parse(JSON.stringify(st));
+        preYearDetails = JSON.parse(JSON.stringify(st));
       }
     }
   } else {
@@ -293,15 +317,15 @@ exports.getEachStockDetails = async (req, res) => {
     .catch((err) => {
       res.status(500).send({ message: err.message });
     });
-    await Formula.findAll()
+  await Formula.findAll()
     .then((formulaList) => {
       formula_List = formulaList;
-    //   for (const tab in tab_details) {
-    //     for (let parameter of tab_details[tab]) {
-    //       let found = formulaList.find(each => { if (each.parameter == parameter) { return each } });
-    //       formula_List[parameter] = found;
-    //   }
-    // }
+      //   for (const tab in tab_details) {
+      //     for (let parameter of tab_details[tab]) {
+      //       let found = formulaList.find(each => { if (each.parameter == parameter) { return each } });
+      //       formula_List[parameter] = found;
+      //   }
+      // }
     })
     .catch((err) => {
       res.status(500).send({ message: err.message });
@@ -324,19 +348,19 @@ exports.getEachStockDetails = async (req, res) => {
       for (const tab in tab_details) {
         let index = 0;
         for (let parameter of tab_details[tab]) {
-          console.log("Parameter ",parameter);
+          console.log("Parameter ", parameter);
           index++;
           let formula = [];
           let found = formula_List.find(each => { if (each.parameter == parameter) { return each } });
           found ? formula.push(found) : null;
           let temp = getCalculatedResults(stock_list, formula, parameter);
-              let tempObj = {
-                "S.No." : index,
-                "parameter": parameter,
-                "yearWiseValue": temp[0].yearWiseValue
-              }
-              response[tab] ? response[tab].push(tempObj) : response[tab] = [tempObj];
-            
+          let tempObj = {
+            "S.No.": index,
+            "parameter": parameter,
+            "yearWiseValue": temp[0].yearWiseValue
+          }
+          response[tab] ? response[tab].push(tempObj) : response[tab] = [tempObj];
+
         }
       }
       res.status(200).send(response);
@@ -411,7 +435,7 @@ exports.getLastestYearStockDetails = async (req, res) => {
             let preYearDetails = null;
             if (item.isFormula == 1) {
               let formulaData = formula_List[item.parameter];
-              if(formulaData.preYearParameter != null){
+              if (formulaData.preYearParameter != null) {
                 preYearDetails = stock_list[index];
               }
               finalList[st.code].lastestParams[item.parameter] = calculate(st, formulaData.formula, formulaData.requiredParameter, formulaData.preYearParameter, preYearDetails);
