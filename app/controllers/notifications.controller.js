@@ -120,7 +120,10 @@ exports.createUpdateNotification = async (req, res) => {
   const request = req.body;
   let sql ='';
   try {
-    if (request.keyWordsId) {      
+    if(request.delete){
+      sql = `delete from ignore_keywords_master WHERE keyWordsId=${request.keyWordsId}`;
+    }
+    else if (request.keyWordsId) {      
       sql = `update ignore_keywords_master set keywords='${request.keywords}',isDynamic=${request.isDynamic}, active=${request.active} WHERE keyWordsId=${request.keyWordsId}`;
     } else {
       sql = `INSERT INTO ignore_keywords_master(keywords,isDynamic, active) VALUES ( '${request.keywords}',${request.isDynamic},1)`;
