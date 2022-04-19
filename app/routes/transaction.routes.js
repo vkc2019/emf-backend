@@ -25,6 +25,4 @@ module.exports = function (app) {
     ],
     controller.getTransactions
   );
-
-
 };
