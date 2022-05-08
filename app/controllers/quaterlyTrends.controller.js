@@ -4,7 +4,7 @@ exports.getQuaterlyTrends = async (req, res) => {
     const code = req.query.code;
     const response = [];
     let qParams = [];
-    let query = "SELECT * FROM stockQuaterlyDetails where code =" + code +" order by id";
+    let query = "SELECT * FROM (SELECT * FROM stockQuaterlyDetails where code =" + code +" order by id desc limit 6)tb order by id";
     let paramsQuery = "SELECT * FROM quaterly_parameters where w_display = 1 order by parameter"
     const resData = await db.query(query);
     const parameters = await db.query(paramsQuery);
@@ -110,4 +110,4 @@ exports.getQuaterlyTrends = async (req, res) => {
     }else {
       res.status(500).send("error");
     }
-  }
+  };
