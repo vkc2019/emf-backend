@@ -17,7 +17,13 @@ module.exports = function(app) {
     ],
     controller.getQuaterlyTrends
   );
-
+  app.get(
+    "/api/quaterly_trends_parameter",
+    [
+      verifySignUp.checkRolesExisted
+    ],
+    controller.getQuaterlyParameterTrends
+  );
  
   
 };
