@@ -111,3 +111,29 @@ exports.getQuaterlyTrends = async (req, res) => {
       res.status(500).send("error");
     }
   };
+
+  exports.getQuaterlyParameter = async (req, res) => {
+    let query = "SELECT * FROM EMF.quaterly_parameters";
+    const data = await db.query(query);
+    //console.log("Data => ",data);
+    if(data){
+      res.status(200).send(data);
+    }else{
+      res.status(500).send("error");
+    }
+  }
+  exports.update_quaterly_parameter = async (req, res) => {
+      try {
+        const request = req.body;
+        console.log("request => ",request);
+        let queryStart = "UPDATE `EMF`.`quaterly_parameters` SET  `e_display` = '"+request.e_display+"', `w_display` = '"+request.w_display+"'"
+        request.percentage ? queryStart + ", percentage` = '"+request.percentage+"'" : null;
+        let queryEnd = queryStart + " WHERE (`id` = '"+request.id+"')";
+        console.log("Query => ",queryEnd);
+        let result = await db.query(queryEnd);
+        res.status(200).send(result);
+      }catch (err) {
+        res.status(500).send(err.message);
+      }
+    
+  }

@@ -24,6 +24,20 @@ module.exports = function(app) {
     ],
     controller.getQuaterlyParameterTrends
   );
- 
+  app.get(
+    "/api/quaterly_parameter",
+    [
+      verifySignUp.checkRolesExisted
+    ],
+    controller.getQuaterlyParameter
+  );
+  app.post(
+    "/api/update_quaterly_parameter",
+    [
+      verifySignUp.checkRolesExisted
+    ],
+    controller.update_quaterly_parameter
+  );
+  
   
 };
