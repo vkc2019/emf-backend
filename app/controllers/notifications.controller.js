@@ -70,7 +70,7 @@ getTabNameAdmin = (status) => {
 
 getTabNameUser = (status) => {
   switch (status) {
-    //case "Approved": return "Saved News Items";
+    case "Approved": return "Completed News Items";
     case "Submitted": return "Saved News Items";
     case "OPEN": return "New News Items";
     case "Denied": return "Rejected News Items";
