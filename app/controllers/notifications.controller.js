@@ -13,7 +13,7 @@ exports.getNotificationList = async (req, res) => {
   }
   let query = `SELECT snl.*,snd.* FROM stocksNotificationLists snl
   INNER JOIN stocksNewsDetails snd on snd.code = snl.code
-  where assignee_usrId=${userId} ${orCondition}`;
+  where assignee_usrId=${userId} and !(status='Approved' AND news_type = 'Neutral') ${orCondition}`;
   console.log(query);
   try {
     const resData = await db.query(query);
