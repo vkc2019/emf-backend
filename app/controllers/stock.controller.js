@@ -38,10 +38,10 @@ exports.getAllStocksConfigList = async (req, res) => {
 };
 
 exports.updateStockConfig = async (req, res) => {
-  const { news, ema, code, active } = req.body;
+  const { news, ema, code, active, ema_analysis, buy_point } = req.body;
   try {
     if(code){
-      const query = `UPDATE adm_stocks_config set news=${news},ema=${ema},active=${active} WHERE code=${code}`;
+      const query = `UPDATE adm_stocks_config set news=${news},ema=${ema},active=${active},ema_analysis=${ema_analysis},buy_point=${buy_point} WHERE code=${code}`;
       await dbConnection.query(query);
     }
     res.status(200).send({ message: 'successfully Updated' });
