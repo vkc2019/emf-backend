@@ -32,7 +32,8 @@ exports.getQuaterlyTrends = async (req, res) => {
         for(q of quater){
           temp[q] = {};
           if(q.includes('%')){
-            temp[q].value = parseFloat(((temp[q.split('%')[1].trim()].value / temp[q.split('%')[0].trim()].value) - 1 ) * 100).toFixed(2) ;
+            let per =  Math.abs(parseFloat(((temp[q.split('%')[1].trim()].value / temp[q.split('%')[0].trim()].value) - 1 ) * 100).toFixed(2)) ;
+            temp[q].value = temp[q.split('%')[1].trim()].value > temp[q.split('%')[0].trim()].value ? per : (-1*per) ;
             if(qParams[params[i]] > 0 ) temp[q].color = temp[q].value >= qParams[params[i]] ? "green" : (temp[q].value < qParams[params[i]] && temp[q].value > 0)? "yellow" : "red";
             else temp[q].color = temp[q].value <= qParams[params[i]] ? "green" : ( temp[q].value > qParams[params[i]] && temp[q].value < 0 )? "yellow" : "red";
           }else{
@@ -97,7 +98,8 @@ exports.getQuaterlyTrends = async (req, res) => {
       for (q of compQuaters) {
         temp[q] = {};
         if (q.includes('%') && st[q.split('%')[1].trim()] && st[q.split('%')[0].trim()]) {
-          temp[q].value = parseFloat(((st[q.split('%')[1].trim()] / st[q.split('%')[0].trim()]) - 1) * 100).toFixed(2);
+          let per = Math.abs(parseFloat(((st[q.split('%')[1].trim()] / st[q.split('%')[0].trim()]) - 1) * 100).toFixed(2));
+          temp[q].value = st[q.split('%')[1].trim()] > st[q.split('%')[0].trim()] ? per : (-1*per);
           if (percentage > 0) temp[q].color = temp[q].value >= percentage ? "green" : (temp[q].value < percentage && temp[q].value > 0) ? "yellow" : "red";
           else temp[q].color = temp[q].value <= percentage ? "green" : (temp[q].value > percentage && temp[q].value < 0) ? "yellow" : "red";
         }else{
