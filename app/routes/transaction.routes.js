@@ -25,4 +25,12 @@ module.exports = function (app) {
     ],
     controller.getTransactions
   );
+
+  app.get(
+    "/api/get_stock_prices",
+    [
+      verifySignUp.checkRolesExisted
+    ],
+    controller.getStockPrices
+  );
 };
