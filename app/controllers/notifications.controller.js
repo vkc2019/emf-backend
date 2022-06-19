@@ -11,24 +11,45 @@ exports.getNotificationList = async (req, res) => {
     orCondition = ` OR ( approver_usrId=${userId}  AND status='Approved' AND news_type <> 'Neutral' )`
     orCondition += ` OR ( approver_usrId=${userId}  AND status='Submitted')`
   }
-  let query = `SELECT snl.*,snd.* FROM stocksNotificationLists snl
+  let query = `SELECT snl.*,snd.*,snc.user , snc.comment FROM stocksNotificationLists snl
   INNER JOIN stocksNewsDetails snd on snd.code = snl.code
+  LEFT JOIN stocksNewsComments snc on snd.id = snc.id
   where assignee_usrId=${userId} and !(status='Approved' AND news_type = 'Neutral') ${orCondition}`;
   console.log(query);
   try {
     const resData = await db.query(query);
+    console.log(resData.length);
+    let commentsArray = {};
+    for (let each of resData) {
+      if(each.status != 'OPEN'){
+        let temp = {
+          user : each.user,
+          comment : each.comment,
+        }
+        if(commentsArray[each.id]){
+          commentsArray[each.id].push(temp);
+        }else{
+          commentsArray[each.id] = new Map();
+          commentsArray[each.id] = [temp];
+        } 
+      }else{
+        commentsArray[each.id] = [];
+      }
+      
+    }
+
     if (resData) {
-      let id = 1;
       for (const news of resData) {
         let Status_tabName = news.approver_usrId == userId ? getTabNameAdmin(news.status) : getTabNameUser(news.status);
         let tempObj = {
-          "id": id++,
+          "id": news.id,
           "code": news.code,
           "categoryName": news.categoryName,
           "attachmentName": news.attachmentName,
           "newsSub": news.newsSub ? binaryAgent(news.newsSub) : null,
           "dateTimeStamp": news.dateTimeStamp,
-          "comments": news.comments ? JSON.parse(binaryAgent(news.comments)) : [],
+        //  "comments": news.comments ? JSON.parse(binaryAgent(news.comments)) : [],
+          "comments" : commentsArray[news.id], 
           "content": news.content ? binaryAgent(news.content) : null,
           "status": news.status,
           "news_type": news.news_type,
@@ -82,28 +103,32 @@ exports.updateNewsDetails = async (req, res) => {
   if (request.items) {
     let request = req.body;
     const items = request.items;
-    items.map(async el => {
+    await items.map(async el => {
       let sql = `update stocksNewsDetails set 
       status='${el.toBeUpdated.status}',
       news_type='${el.toBeUpdated.news_type}',
       comments='${el.toBeUpdated.comments}'
       WHERE code=${el.code} AND dateTimeStamp = '${moment(el.dateTimeStamp).format('YYYY-MM-DD HH:mm:ss')}';`
       await db.query(sql);
+      let commQuery = `INSERT INTO EMF.stocksNewsComments (id,commentId,user,comment) Values (${el.id},${el.toBeUpdated.comments.id},'${el.toBeUpdated.comments.user}','${el.toBeUpdated.comments.comment}')`
+      await db.query(commQuery);
     });
-    res.status(200).send("SUCCESS");
+    
   } else {
     let sql = `update stocksNewsDetails set 
     status='${request.toBeUpdated.status}',
     news_type='${request.toBeUpdated.news_type}',
-    comments='${request.toBeUpdated.comments}'
     WHERE code=${request.code} AND dateTimeStamp = '${moment(request.dateTimeStamp).format('YYYY-MM-DD HH:mm:ss')}';`
     let dbRes = await db.query(sql);
-    if (dbRes) {
+    let commQuery = `INSERT INTO EMF.stocksNewsComments (id,commentId,user,comment) Values (${request.id},${request.toBeUpdated.comments.id},'${request.toBeUpdated.comments.user}','${request.toBeUpdated.comments.comment}')`
+    let comDbRes = await db.query(commQuery);
+    if (dbRes && comDbRes) {
       res.status(200).send("SUCCESS");
     } else {
       res.status(500).send({ message: `error in updating the news` });
     }
   }
+  res.status(200).send("SUCCESS");
 }
 
 exports.getIgnoreNotificationsList = async (req, res) => {
@@ -115,6 +140,7 @@ exports.getIgnoreNotificationsList = async (req, res) => {
     res.status(500).send(err.message);
   }
 }
+
 
 exports.createUpdateNotification = async (req, res) => {
   const request = req.body;
@@ -136,7 +162,7 @@ exports.createUpdateNotification = async (req, res) => {
 }
 
 getBSELink = (stock) => {
-  console.log(stock);
+  //console.log(stock);
   let name = stock.name.replace(/[^a-zA-Z ]/g, "").toLowerCase().split(" ").join("-");
   let securityId = stock.security_id.toLowerCase();
   return "https://www.bseindia.com/stock-share-price/" + name + "/" + securityId + "/" + stock.code + "/corp-announcements/";
