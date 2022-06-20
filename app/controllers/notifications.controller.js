@@ -110,7 +110,8 @@ exports.updateNewsDetails = async (req, res) => {
       comments='${el.toBeUpdated.comments}'
       WHERE code=${el.code} AND dateTimeStamp = '${moment(el.dateTimeStamp).format('YYYY-MM-DD HH:mm:ss')}';`
       await db.query(sql);
-      let commQuery = `INSERT INTO EMF.stocksNewsComments (id,commentId,user,comment) Values (${el.id},${el.toBeUpdated.comments.id},'${el.toBeUpdated.comments.user}','${el.toBeUpdated.comments.comment}')`
+      let comment = (el.toBeUpdated.comments.comment).replaceAll("'","''");
+      let commQuery = `INSERT INTO EMF.stocksNewsComments (id,commentId,user,comment) Values (${el.id},${el.toBeUpdated.comments.id},'${el.toBeUpdated.comments.user}','${comment}')`
       await db.query(commQuery);
     });
     
@@ -120,7 +121,8 @@ exports.updateNewsDetails = async (req, res) => {
     news_type='${request.toBeUpdated.news_type}',
     WHERE code=${request.code} AND dateTimeStamp = '${moment(request.dateTimeStamp).format('YYYY-MM-DD HH:mm:ss')}';`
     let dbRes = await db.query(sql);
-    let commQuery = `INSERT INTO EMF.stocksNewsComments (id,commentId,user,comment) Values (${request.id},${request.toBeUpdated.comments.id},'${request.toBeUpdated.comments.user}','${request.toBeUpdated.comments.comment}')`
+    let comment = (request.toBeUpdated.comments.comment).replaceAll("'","''");
+    let commQuery = `INSERT INTO EMF.stocksNewsComments (id,commentId,user,comment) Values (${request.id},${request.toBeUpdated.comments.id},'${request.toBeUpdated.comments.user}','${comment}')`
     let comDbRes = await db.query(commQuery);
     if (dbRes && comDbRes) {
       res.status(200).send("SUCCESS");
