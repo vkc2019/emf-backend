@@ -14,11 +14,10 @@ exports.getNotificationList = async (req, res) => {
   let query = `SELECT snl.*,snd.*,snc.user , snc.comment FROM stocksNotificationLists snl
   INNER JOIN stocksNewsDetails snd on snd.code = snl.code
   LEFT JOIN stocksNewsComments snc on snd.id = snc.id
-  where assignee_usrId=${userId} and !(status='Approved' AND news_type = 'Neutral') ${orCondition}`;
-  console.log(query);
+  where assignee_usrId=${userId} and !(status='Approved' AND news_type = 'Neutral') ${orCondition} order by snd.id`;
+  
   try {
     const resData = await db.query(query);
-    console.log(resData.length);
     let commentsArray = {};
     for (let each of resData) {
       if(each.status != 'OPEN'){
@@ -35,11 +34,14 @@ exports.getNotificationList = async (req, res) => {
       }else{
         commentsArray[each.id] = [];
       }
-      
     }
+      
 
     if (resData) {
+      let prevId ;
       for (const news of resData) {
+        if(prevId != news.id){
+        prevId = news.id;
         let Status_tabName = news.approver_usrId == userId ? getTabNameAdmin(news.status) : getTabNameUser(news.status);
         let tempObj = {
           "id": news.id,
@@ -63,6 +65,7 @@ exports.getNotificationList = async (req, res) => {
           response[Status_tabName][news.name] = [tempObj];
         }
       }
+    }
       res.status(200).send(response);
     } else {
       res.status(500).send({ message: 'no data' });
@@ -106,11 +109,11 @@ exports.updateNewsDetails = async (req, res) => {
     await items.map(async el => {
       let sql = `update stocksNewsDetails set 
       status='${el.toBeUpdated.status}',
-      news_type='${el.toBeUpdated.news_type}',
-      comments='${el.toBeUpdated.comments}'
+      news_type='${el.toBeUpdated.news_type}'
       WHERE code=${el.code} AND dateTimeStamp = '${moment(el.dateTimeStamp).format('YYYY-MM-DD HH:mm:ss')}';`
+      console.log(sql);
       await db.query(sql);
-      let comment = (el.toBeUpdated.comments.comment).replaceAll("'","''");
+      let comment = (el.toBeUpdated.comments.comment).replace(/'/g,"''");
       let commQuery = `INSERT INTO EMF.stocksNewsComments (id,commentId,user,comment) Values (${el.id},${el.toBeUpdated.comments.id},'${el.toBeUpdated.comments.user}','${comment}')`
       await db.query(commQuery);
     });
