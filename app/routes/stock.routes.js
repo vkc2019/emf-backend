@@ -89,6 +89,14 @@ module.exports = function(app) {
     controller.getLastestYearStockDetails
   );
 
+  app.get(
+    "/api/ema_data",
+    [
+      verifySignUp.checkRolesExisted
+    ],
+    controller.getEMACrossOver
+  );
+
   
   
 };

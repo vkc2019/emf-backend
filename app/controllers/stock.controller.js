@@ -6,6 +6,8 @@ const Formula = db.formula;
 const sequelize = db.Sequelize;
 const Portifolio = db.portifolio;
 
+const mdb = require("../helper/db");
+
 const { parse, eval } = require('expression-eval');
 
 exports.getStockList = (req, res) => {
@@ -211,6 +213,20 @@ exports.getPortifolio = (req, res) => {
   })
 }
 
+exports.getEMACrossOver = async (req, res) => {
+  try {
+    const query = `SELECT ast.name, asd.* FROM adm_stocks_data asd INNER JOIN adm_stocks ast on ast.code = asd.code`;
+    const resData = await mdb.query(query);
+    if (resData) {
+      res.status(200).send(resData);
+    } else {
+      res.status(500).send({ message: 'no data' });
+    }
+  } catch (err) {
+    console.log(err.message)
+    res.status(500).send({ message: err.message });
+  }
+}
 
 exports.getStockListByParams = (req, res) => {
   const industryList = req.query.industry;
