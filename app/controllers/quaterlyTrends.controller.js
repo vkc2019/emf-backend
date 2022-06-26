@@ -139,3 +139,73 @@ exports.getQuaterlyTrends = async (req, res) => {
       }
     
   }
+
+  function getPrevQuater(){
+    let currQuater = Math.floor((new Date().getMonth() + 3) / 3);
+    switch(currQuater) {
+      case 1 : return 'Dec' ; 
+      case 2 : return 'Mar' ; 
+      case 3 : return 'Jun' ; 
+      case 4 : return 'Sep' ; 
+    }
+  }
+
+  exports.getLastestResults = async (req, res) => {
+    let quater = getPrevQuater();
+    let currYear = quater + "-" + new Date().getFullYear() % 100;
+    let prevYear = quater + "-" + (new Date().getFullYear() % 100 - 1);
+    let query = `SELECT sqd.*, asl.name, asl.industry FROM EMF.stockQuaterlyDetails sqd inner join 
+EMF.all_stock_list asl on sqd.code = asl.code inner join (select * from EMF.stockQuaterlyDetails sd
+where sd.quater = '${currYear}') nt on nt.code = sqd.code
+where sqd.quater='${currYear}' or sqd.quater='${prevYear}' order by date desc , code ,  id desc`
+    let parametersQuery = `SELECT * FROM EMF.quaterly_parameters where e_display = 1`
+    try {
+    const data = await db.query(query);
+    const parameters = await db.query(parametersQuery);
+    let resultsArray = [];
+    console.log(data);
+      for(let i=0; i<data.length;i+=2){
+          let results =  await compareQuaterlyResults(data[parseInt(i)+1] , data[i] , parameters);
+          results ? resultsArray.push(results) : null;
+      }
+      res.status(200).send(resultsArray);
+    }
+    catch(err){
+      res.status(500).send(err.message);
+    }
+  }
+
+  async function compareQuaterlyResults(prevDetails, currDetails,parameter) {
+    let temp = {
+        name : {
+            value : prevDetails.name
+        },
+        industry : {
+            value : prevDetails.industry
+        },
+        date : {
+          value : currDetails.date ? new Date(currDetails.date).toISOString().split('T')[0] : null
+        }
+    };
+    let flag = false;
+    for (let param of parameter) {
+        let color;
+        let per = Math.abs(((currDetails[param.parameter] / prevDetails[param.parameter])-1) * 100);
+        let value = currDetails[param.parameter] > prevDetails[param.parameter] ? per : (-1*per);
+        if (param.calculate && Math.round(value) >= param.percentage) {
+            color = "green";
+            flag = true;
+        }
+        if (param["e_display"]) {
+            temp[param.parameter] = {
+                "color" : color,
+                "value" : parseInt(value.toFixed(2))
+            } ;
+        }
+    }
+    if (flag) {
+        return temp
+    } else {
+        return null
+    }
+}

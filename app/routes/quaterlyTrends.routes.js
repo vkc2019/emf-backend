@@ -38,6 +38,13 @@ module.exports = function(app) {
     ],
     controller.update_quaterly_parameter
   );
+  app.get(
+    "/api/get_lastest_results",
+    [
+      verifySignUp.checkRolesExisted
+    ],
+    controller.getLastestResults
+  );
   
   
 };
