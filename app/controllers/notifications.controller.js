@@ -118,12 +118,7 @@ exports.updateNewsDetails = async (req, res) => {
         let commQuery = `INSERT INTO EMF.stocksNewsComments (id,commentId,user,comment) Values (${el.id},${el.toBeUpdated.comments.id},'${el.toBeUpdated.comments.user}','${comment}')`
         console.log("commQuery" ,commQuery);
         await db.query(commQuery);
-      }else{
-        let commQuery = `INSERT INTO EMF.stocksNewsComments (id,commentId,user) Values (${el.id},${el.toBeUpdated.comments.id},'${el.toBeUpdated.comments.user}')`
-        console.log("commQuery" ,commQuery);
-        await db.query(commQuery);
       }
-      
      
     });
     
