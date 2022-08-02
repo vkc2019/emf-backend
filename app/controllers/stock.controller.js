@@ -217,7 +217,7 @@ exports.getStockListByParams = async (req, res) => {
   const industryList = req.query.industry;
   const parameter = req.query.parameter;
   try {
-    const query = `SELECT * FROM EMF.stockdetails where industry in ('${industryList.replaceAll(',',"','").split(",")}') order by industry , security_name , year desc`;
+    const query = `SELECT * FROM EMF.stockdetails where industry in ('${industryList.replace(/,/g,"','").split(",")}') order by industry , security_name , year desc`;
     const stock_list = await dbConnection.query(query);
       if (stock_list.length === 0) {
         return res.status(404).send({ message: "Stock list Not found." });
@@ -400,7 +400,7 @@ exports.getLastestYearStockDetails = async (req, res) => {
 
 
     try {
-      const query = `SELECT * FROM EMF.stockdetails where industry in ('${industryList.replaceAll(',',"','").split(",")}') order by industry , security_name , year desc`;
+      const query = `SELECT * FROM EMF.stockdetails where industry in ('${industryList.replace(/,/g,"','").split(",")}') order by industry , security_name , year desc`;
       const stock_list = await dbConnection.query(query);
     
       if (stock_list.length === 0) {
