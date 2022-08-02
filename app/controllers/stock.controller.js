@@ -10,23 +10,15 @@ const mdb = require("../helper/db");
 
 const { parse, eval } = require('expression-eval');
 
-exports.getStockList = (req, res) => {
-  StockDetails.findAll({
-    attributes: [
-      [sequelize.fn("DISTINCT", sequelize.col("code")), "code"],
-      ['security_name', 'name'],
-      ['industry', 'industry']
-    ],
-  })
-    .then((stock_list) => {
-      if (!stock_list) {
-        return res.status(404).send({ message: "Stock list Not found." });
-      }
-      res.status(200).send(stock_list);
-    })
-    .catch((err) => {
-      res.status(500).send({ message: err.message });
-    });
+
+exports.getStockList = async (req, res) => {
+  try {
+    const query = `SElECT * FROM adm_stocks ORDER BY name ,  industry `;
+    const resp = await dbConnection.query(query);
+    res.status(200).send(resp);
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
 };
 
 exports.getAllStocksConfigList = async (req, res) => {
@@ -52,21 +44,14 @@ exports.updateStockConfig = async (req, res) => {
   }
 };
 
-exports.getIndustryList = (req, res) => {
-  StockDetails.findAll({
-    attributes: [
-      [sequelize.fn("DISTINCT", sequelize.col("industry")), "name"],
-    ],
-  })
-    .then((f_list) => {
-      if (!f_list) {
-        return res.status(404).send({ message: "industry list Not found." });
-      }
-      res.status(200).send(f_list);
-    })
-    .catch((err) => {
+exports.getIndustryList = async (req, res) => {
+    try {
+      const query = `SElECT distinct(industry) as name FROM adm_stocks`;
+      const resp = await dbConnection.query(query);
+      res.status(200).send(resp);
+    } catch (err) {
       res.status(500).send({ message: err.message });
-    });
+    }
 };
 
 exports.saveStock = (req, res) => {
@@ -228,20 +213,12 @@ exports.getEMACrossOver = async (req, res) => {
   }
 }
 
-exports.getStockListByParams = (req, res) => {
+exports.getStockListByParams = async (req, res) => {
   const industryList = req.query.industry;
   const parameter = req.query.parameter;
-  StockDetails.findAll({
-    where: {
-      industry: [industryList.split(",")],
-    },
-    order: [
-      ['industry'],
-      ['security_name'],
-      ['year']
-    ]
-  })
-    .then((stock_list) => {
+  try {
+    const query = `SELECT * FROM EMF.stockdetails where industry in ('${industryList.replaceAll(',',"','").split(",")}') order by industry , security_name , year desc`;
+    const stock_list = await dbConnection.query(query);
       if (stock_list.length === 0) {
         return res.status(404).send({ message: "Stock list Not found." });
       }
@@ -258,10 +235,10 @@ exports.getStockListByParams = (req, res) => {
         .catch((err) => {
           res.status(500).send({ message: err.message });
         });
-    })
-    .catch((err) => {
+    }
+    catch(err) {
       res.status(500).send({ message: err.message });
-    });
+    };
 };
 
 getCalculatedResults = (stock_list, formulaList, parameter) => {
@@ -422,17 +399,10 @@ exports.getLastestYearStockDetails = async (req, res) => {
     });
 
 
-  await StockDetails.findAll({
-    where: {
-      industry: [industryList.split(",")],
-    },
-    order: [
-      ['industry'],
-      ['security_name'],
-      ['year', 'DESC']
-    ]
-  })
-    .then((stock_list) => {
+    try {
+      const query = `SELECT * FROM EMF.stockdetails where industry in ('${industryList.replaceAll(',',"','").split(",")}') order by industry , security_name , year desc`;
+      const stock_list = await dbConnection.query(query);
+    
       if (stock_list.length === 0) {
         return res.status(404).send({ message: "Stock list Not found." });
       }
@@ -469,8 +439,8 @@ exports.getLastestYearStockDetails = async (req, res) => {
         arr.push(finalList[key])
       }
       res.status(200).send(arr);
-    })
-    .catch((err) => {
+    }
+    catch(err){
       res.status(500).send({ message: err.message });
-    });
+    };
 }
