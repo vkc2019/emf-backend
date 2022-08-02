@@ -1,5 +1,5 @@
 module.exports = (sequelize, Sequelize) => {
-    const StockList = sequelize.define("all_stock_list", {
+    const StockList = sequelize.define("adm_stocks", {
       code: { type: Sequelize.INTEGER ,  primaryKey: true },
       name: { type: Sequelize.STRING },
       industry: { type: Sequelize.STRING },

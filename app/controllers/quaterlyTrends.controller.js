@@ -51,8 +51,8 @@ exports.getQuaterlyTrends = async (req, res) => {
   exports.getQuaterlyParameterTrends = async (req, res) => {
     let response = [];
     let industry = req.query.industry.split(',').join("\',\'");
-    let getDetailsQuery = "select sqd.`" + req.query.param + "`, sqd.code, sqd.quater, asl.industry, asl.name from  EMF.stockQuaterlyDetails sqd , EMF.all_stock_list asl where asl.industry in ('" + industry + "') and asl.code = sqd.code";
-    let getQuaterQuery = "select distinct quater  from  EMF.stockQuaterlyDetails sqd , EMF.all_stock_list asl where asl.industry in ('" + industry + "') and asl.code = sqd.code";
+    let getDetailsQuery = "select sqd.`" + req.query.param + "`, sqd.code, sqd.quater, asl.industry, asl.name from  EMF.stockQuaterlyDetails sqd , EMF.adm_stocks asl where asl.industry in ('" + industry + "') and asl.code = sqd.code";
+    let getQuaterQuery = "select distinct quater  from  EMF.stockQuaterlyDetails sqd , EMF.adm_stocks asl where asl.industry in ('" + industry + "') and asl.code = sqd.code";
     let calPercentageQuery = "SELECT percentage FROM EMF.quaterly_parameters where parameter = '" + req.query.param + "'";
     const data = await db.query(getDetailsQuery);
     const quaterData = await db.query(getQuaterQuery);
@@ -155,7 +155,7 @@ exports.getQuaterlyTrends = async (req, res) => {
     let currYear = quater + "-" + new Date().getFullYear() % 100;
     let prevYear = quater + "-" + (new Date().getFullYear() % 100 - 1);
     let query = `SELECT sqd.*, asl.name, asl.industry FROM EMF.stockQuaterlyDetails sqd inner join 
-EMF.all_stock_list asl on sqd.code = asl.code inner join (select * from EMF.stockQuaterlyDetails sd
+EMF.adm_stocks asl on sqd.code = asl.code inner join (select * from EMF.stockQuaterlyDetails sd
 where sd.quater = '${currYear}') nt on nt.code = sqd.code
 where sqd.quater='${currYear}' or sqd.quater='${prevYear}' order by date desc , code ,  id desc`
     let parametersQuery = `SELECT * FROM EMF.quaterly_parameters where e_display = 1`
