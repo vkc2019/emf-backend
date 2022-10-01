@@ -18,6 +18,13 @@ module.exports = function(app) {
     controller.getQuaterlyTrends
   );
   app.get(
+    "/api/getQuaterlyTrendsCompare",
+    [
+      verifySignUp.checkRolesExisted
+    ],
+    controller.getQuaterlyTrendsCompare
+  );
+  app.get(
     "/api/quaterly_trends_parameter",
     [
       verifySignUp.checkRolesExisted

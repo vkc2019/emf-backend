@@ -1,5 +1,61 @@
 const db = require("../helper/db");
 
+exports.getQuaterlyTrendsCompare = async (req, res) => {
+  
+  const response = [];
+  let qParams = [];
+  let paramsQuery = "SELECT * FROM quaterly_parameters where w_display = 1 order by parameter"
+  const parameters = await db.query(paramsQuery);
+  //console.log(compareData);
+  parameters.map(({parameter,percentage}) => {qParams[parameter]=percentage});
+  //console.log(qParams);
+  let stockListQ = "SELECT distinct(sqd.code),ast.name FROM EMF.stockQuaterlyDetails sqd join EMF.adm_stocks ast where ast.code = sqd.code";
+  let stockList = await db.query(stockListQ);
+  for(let k=0;k<stockList.length;k++){
+    const code = stockList[k].code;
+    let query = "SELECT * FROM (SELECT * FROM stockQuaterlyDetails where code =" + code +" order by id desc limit 6)tb order by id";
+    const resData = await db.query(query);
+
+  if (resData) {
+    let params = ["Net Profit"];
+    let quater = resData.map(el=>el.quater);
+    let len = quater.length;
+    let columns = {};
+    for(let i = 0; i < len; i++){
+      if (columns[quater[i].split("-")[0]]) {
+        quater.push(columns[quater[i].split("-")[0]] +" % " + quater[i]);
+      }else{
+        columns[quater[i].split("-")[0]] = quater[i];
+      }
+    }
+    for(let i=0 ;i<params.length;i++){
+      let temp = {
+        "parameter" :  params[i],
+        "code" : stockList[k].code,
+        "name" : stockList[k].name,
+      };
+      for(q of quater){
+       // temp[q] = {};
+        if(q.includes('%')){
+          let per =  Math.abs(parseFloat(((temp[q.split('%')[1].trim()] / temp[q.split('%')[0].trim()]) - 1 ) * 100).toFixed(2)) ;
+          temp[q] = temp[q.split('%')[1].trim()] > temp[q.split('%')[0].trim()] ? per : (-1*per) ;
+        //  if(qParams[params[i]] > 0 ) temp[q].color = temp[q].value >= qParams[params[i]] ? "green" : (temp[q].value < qParams[params[i]] && temp[q].value > 0)? "yellow" : "red";
+        //  else temp[q].color = temp[q].value <= qParams[params[i]] ? "green" : ( temp[q].value > qParams[params[i]] && temp[q].value < 0 )? "yellow" : "red";
+        }else{
+          temp[q] = resData.find(el => el.quater == q)[params[i]];
+        }
+      }
+      response.push(temp);
+    }
+   
+  } else {
+    res.status(500).send("error",stockList[k].code);
+  }
+  
+}
+res.status(200).send(response);
+};
+
 exports.getQuaterlyTrends = async (req, res) => {
     const code = req.query.code;
     const response = [];
