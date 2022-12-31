@@ -444,3 +444,14 @@ exports.getLastestYearStockDetails = async (req, res) => {
       res.status(500).send({ message: err.message });
     };
 }
+
+exports.getInvestedStocks = async(req , res) => {
+  try {
+    const query = `SELECT st.* FROM adm_stocks st INNER JOIN adm_stocks_config stc 
+    ON stc.code = st.code where stc.ema_analysis = 1`;
+    const resp = await dbConnection.query(query);
+    res.status(200).send(resp);
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+}

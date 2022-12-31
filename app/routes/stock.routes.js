@@ -97,6 +97,13 @@ module.exports = function(app) {
     controller.getEMACrossOver
   );
 
+  app.get(
+    "/api/get_invested_stocks",
+    [
+      verifySignUp.checkRolesExisted
+    ],
+    controller.getInvestedStocks
+  );
   
   
 };
