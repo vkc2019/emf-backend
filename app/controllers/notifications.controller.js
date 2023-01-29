@@ -11,10 +11,11 @@ exports.getNotificationList = async (req, res) => {
     orCondition = ` OR ( approver_usrId=${userId}  AND status='Approved' AND news_type <> 'Neutral' )`
     orCondition += ` OR ( approver_usrId=${userId}  AND status='Submitted')`
   }
-  let query = `SELECT snl.*,snd.*,snc.user , snc.comment FROM stocksNotificationLists snl
+  let query = `SELECT snl.*,snd.*,snc.user , snc.comment, asd.result_color_code FROM stocksNotificationLists snl
   INNER JOIN stocksNewsDetails snd on snd.code = snl.code
+  INNER JOIN adm_stocks_data asd on asd.code = snl.code
   LEFT JOIN stocksNewsComments snc on snd.id = snc.id
-  where assignee_usrId=${userId} and !(status='Approved' AND news_type = 'Neutral') ${orCondition} order by snd.id`;
+  where assignee_usrId=${userId} and !(status='Approved' AND news_type = 'Neutral') ${orCondition} order by asd.result_color_code desc , snl.name`;
   
   try {
     const resData = await db.query(query);
@@ -57,6 +58,7 @@ exports.getNotificationList = async (req, res) => {
           "news_type": news.news_type,
           "security_id": news.security_id,
           "bseLink": getBSELink(news),
+          "result_color_code" : news.result_color_code,
         }
         if (response[Status_tabName]) {
           response[Status_tabName][news.name] ? response[Status_tabName][news.name].push(tempObj) : response[Status_tabName][news.name] = [tempObj];
