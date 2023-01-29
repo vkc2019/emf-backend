@@ -208,19 +208,28 @@ exports.getQuaterlyTrends = async (req, res) => {
 
   exports.getLastestResults = async (req, res) => {
     let quater = getPrevQuater();
-    let currYear = quater + "-" + new Date().getFullYear() % 100;
-    let prevYear = quater + "-" + (new Date().getFullYear() % 100 - 1);
+    let currYear;
+    let prevYear;
+    if(quater == 'Dec'){
+       currYear = quater + "-" + (new Date().getFullYear() % 100 -1);
+       prevYear = quater + "-" + (new Date().getFullYear() % 100 - 2);
+    }else{
+       currYear = quater + "-" + new Date().getFullYear() % 100;
+       prevYear = quater + "-" + (new Date().getFullYear() % 100 - 1);
+    }
+    
     let query = `SELECT sqd.*, asl.name, asl.industry FROM EMF.stockQuaterlyDetails sqd inner join 
 EMF.adm_stocks asl on sqd.code = asl.code inner join (select * from EMF.stockQuaterlyDetails sd
 where sd.quater = '${currYear}') nt on nt.code = sqd.code
-where sqd.quater='${currYear}' or sqd.quater='${prevYear}' order by date desc , code ,  id desc`
+where sqd.quater='${currYear}' or sqd.quater='${prevYear}' order by  code ,  id desc`
     let parametersQuery = `SELECT * FROM EMF.quaterly_parameters where e_display = 1`
     try {
     const data = await db.query(query);
     const parameters = await db.query(parametersQuery);
     let resultsArray = [];
-    console.log(data);
+   // console.log(data);
       for(let i=0; i<data.length;i+=2){
+          console.log("NAME => ",data[i].name ," --- ",data[parseInt(i)+1].name);
           let results =  await compareQuaterlyResults(data[parseInt(i)+1] , data[i] , parameters);
           results ? resultsArray.push(results) : null;
       }
