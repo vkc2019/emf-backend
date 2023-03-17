@@ -33,4 +33,12 @@ module.exports = function (app) {
     ],
     controller.getStockPrices
   );
+
+  app.get(
+    "/api/get_account_details",
+    [
+      verifySignUp.checkRolesExisted
+    ],
+    controller.getAccountDetails
+  )
 };
