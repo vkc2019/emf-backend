@@ -40,5 +40,13 @@ module.exports = function (app) {
       verifySignUp.checkRolesExisted
     ],
     controller.getAccountDetails
+  );
+
+  app.get(
+    "/api/get_tracker_details",
+    [
+      verifySignUp.checkRolesExisted
+    ],
+    controller.getTrackerDetails
   )
 };
