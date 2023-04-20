@@ -1,20 +1,30 @@
 const db = require("../helper/db");
 
 exports.addTransaction = async (req, res) => {
-  const request = req.body;
+  const {insertRecords , updateRecords} = req.body;
   try {
     let query = `INSERT INTO adm_transactions ( code, qty, price, type, date, account) VALUES ` ;
 
     let updateQuery = '';
 
-    request.forEach(async(ta) => {
+    updateRecords.forEach(async(ta) => {
       query += `( ${ta.stock.code},${ta.quantity},${ta.price},'${ta.type}','${ta.date.split('T')[0]}','${ta.account.name}' ) ,`;
       
-      ta.type == "Buy" ? updateQuery = `update adm_financial_tracker set average_price = ((quantity + average_price) + (${ta.quantity}*${ta.price}))/(quantity+${ta.quantity}) , quantity = quantity + ${ta.quantity} where code = ${ta.stock.code}` : 
+      ta.type == "Buy" ? updateQuery = `update adm_financial_tracker set average_price = ((quantity + average_price) + (${ta.quantity}*${ta.price}))/(quantity+${ta.quantity}) , quantity = quantity + ${ta.quantity} where code = ${ta.stock.code} and account = '${ta.account.name}'` : 
 
-      updateQuery = `update adm_financial_tracker set average_price = ((quantity + average_price) - (${ta.quantity}*${ta.price}))/(quantity - ${ta.quantity}) quantity = quantity - ${ta.quantity} where code = ${ta.stock.code}`
+      updateQuery = `update adm_financial_tracker set average_price = ((quantity + average_price) - (${ta.quantity}*${ta.price}))/(quantity - ${ta.quantity}), quantity = quantity - ${ta.quantity} where code = ${ta.stock.code} and account = '${ta.account.name}'`
 
       await db.query(updateQuery);
+
+    });
+
+    insertRecords.forEach(async(ta) => {
+      query += `( ${ta.stock.code},${ta.quantity},${ta.price},'${ta.type}','${ta.date.split('T')[0]}','${ta.account.name}' ) ,`;
+      
+      let insertQuery = `INSERT INTO adm_financial_tracker ( code, quantity, average_price, account) VALUES 
+      ( ${ta.stock.code}, ${ta.quantity}, (${ta.quantity}*${ta.price})/(${ta.quantity}), '${ta.account.name}')`
+
+      await db.query(insertQuery);
 
     });
   
@@ -85,7 +95,7 @@ exports.getAccountDetails = async (req, res) => {
 
 exports.getTrackerDetails = async (req,res) => {
   let query = `SELECT finTracker.code, ast.name , finTracker.quantity, 
-  finTracker.average_price, asd.price
+  finTracker.average_price,finTracker.account, asd.price
   FROM EMF.adm_financial_tracker finTracker 
   INNER JOIN adm_stocks ast on ast.code = finTracker.code
   INNER JOIN adm_stocks_data asd on asd.code = finTracker.code 
@@ -107,6 +117,7 @@ exports.getTrackerDetails = async (req,res) => {
           "Current Value" : Number(parseFloat(each.price * each.quantity).toFixed(2)),
           "Profit / Loss" : Number(parseFloat((each.price * each.quantity) - (each.average_price * each.quantity)).toFixed(2)),
           "% of Profit / Loss" : Number(parseFloat((((each.price * each.quantity)/(each.average_price * each.quantity)) - 1) * 100).toFixed(2)),
+          "Account" : each.account,
         })
       }
       res.status(200).send(result);
