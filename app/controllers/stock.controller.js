@@ -447,8 +447,7 @@ exports.getLastestYearStockDetails = async (req, res) => {
 
 exports.getInvestedStocks = async(req , res) => {
   try {
-    const query = `SELECT st.* FROM adm_stocks st INNER JOIN adm_stocks_config stc 
-    ON stc.code = st.code where stc.ema_analysis = 1`;
+    const query = `SELECT st.name , ft.* FROM EMF.adm_financial_tracker ft INNER JOIN adm_stocks st ON st.code = ft.code where quantity != 0`;
     const resp = await dbConnection.query(query);
     res.status(200).send(resp);
   } catch (err) {
