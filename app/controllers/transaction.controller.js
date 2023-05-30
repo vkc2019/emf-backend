@@ -10,9 +10,9 @@ exports.addTransaction = async (req, res) => {
     updateRecords.forEach(async(ta) => {
       query += `( ${ta.stock.code},${ta.quantity},${ta.price},'${ta.type}','${ta.date.split('T')[0]}','${ta.account.name}' ) ,`;
       
-      ta.type == "Buy" ? updateQuery = `update adm_financial_tracker set average_price = ((quantity + average_price) + (${ta.quantity}*${ta.price}))/(quantity+${ta.quantity}) , quantity = quantity + ${ta.quantity} where code = ${ta.stock.code} and account = '${ta.account.name}'` : 
+      ta.type == "Buy" ? updateQuery = `update adm_financial_tracker set average_price = ((quantity + IFNULL(average_price,0)) + (${ta.quantity}*${ta.price}))/(quantity+${ta.quantity}) , quantity = quantity + ${ta.quantity} where code = ${ta.stock.code} and account = '${ta.account.name}'` : 
 
-      updateQuery = `update adm_financial_tracker set average_price = ((quantity + average_price) - (${ta.quantity}*${ta.price}))/(quantity - ${ta.quantity}), quantity = quantity - ${ta.quantity} where code = ${ta.stock.code} and account = '${ta.account.name}'`
+      updateQuery = `update adm_financial_tracker set average_price = ((quantity + IFNULL(average_price,0)) - (${ta.quantity}*${ta.price}))/NULLIF((quantity - ${ta.quantity}),0), quantity = quantity - ${ta.quantity} where code = ${ta.stock.code} and account = '${ta.account.name}'`
 
       await db.query(updateQuery);
 
